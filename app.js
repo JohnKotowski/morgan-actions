@@ -30,6 +30,8 @@ const actionsBodyEl = document.getElementById("actions-body");
 const agendaBodyEl = document.getElementById("agenda-body");
 const agendaLinkEl = document.getElementById("agenda-link");
 const agendaLinkSubEl = document.getElementById("agenda-link-sub");
+const europeLinkEl = document.getElementById("europe-link");
+const EUROPE_TRIP_URL = "https://johnkotowski.github.io/europe-trip-2026/";
 
 let currentView = "actions";
 
@@ -356,6 +358,17 @@ agendaLinkEl.addEventListener("click", () => {
   try { tg?.HapticFeedback?.impactOccurred?.("light"); } catch {}
   showView("agenda");
   loadAgenda();
+});
+
+europeLinkEl.addEventListener("click", () => {
+  try { tg?.HapticFeedback?.impactOccurred?.("light"); } catch {}
+  // openLink uses Telegram's in-app browser when available, with a
+  // "Back to bot" affordance so John can return to this view.
+  if (tg?.openLink) {
+    tg.openLink(EUROPE_TRIP_URL, { try_instant_view: false });
+  } else {
+    window.open(EUROPE_TRIP_URL, "_blank", "noopener");
+  }
 });
 
 refreshBtn.addEventListener("click", () => {

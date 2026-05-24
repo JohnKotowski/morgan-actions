@@ -281,15 +281,21 @@ main {
   text-align: center;
 }
 
-/* ─────────────────── My Agenda link (top of actions view) ───────── */
+/* ─────────────────── Tile stack (top of actions view) ───────────── */
 
-.agenda-link {
+.tile-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 0 18px;
+}
+
+.tile {
   display: flex;
   align-items: center;
   gap: 12px;
   width: 100%;
   padding: 14px;
-  margin: 0 0 18px;
   border: 0;
   border-radius: var(--radius);
   background: var(--accent);
@@ -300,14 +306,21 @@ main {
   transition: transform 0.1s;
 }
 
-.agenda-link:active { transform: scale(0.99); }
+.tile:active { transform: scale(0.99); }
 
-.agenda-link-icon {
+/* Europe tile: warm secondary palette to differentiate from the agenda
+ * (which uses the primary Telegram accent color). */
+.tile-europe {
+  background: linear-gradient(135deg, #0fb5c0 0%, #1fa1ff 100%);
+  color: #ffffff;
+}
+
+.tile-icon {
   font-size: 26px;
   line-height: 1;
 }
 
-.agenda-link-main {
+.tile-main {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -315,17 +328,17 @@ main {
   min-width: 0;
 }
 
-.agenda-link-label {
+.tile-label {
   font-size: 16px;
   font-weight: 600;
 }
 
-.agenda-link-sub {
+.tile-sub {
   font-size: 12px;
   opacity: 0.85;
 }
 
-.agenda-link-chevron {
+.tile-chevron {
   font-size: 24px;
   opacity: 0.85;
 }

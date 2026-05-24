@@ -15,14 +15,24 @@
 
   <!-- View: Action Items (default) -->
   <main id="view-actions" class="view">
-    <button id="agenda-link" class="agenda-link" type="button">
-      <span class="agenda-link-icon">🗓</span>
-      <span class="agenda-link-main">
-        <span class="agenda-link-label">My Agenda</span>
-        <span class="agenda-link-sub" id="agenda-link-sub">Today across all calendars</span>
-      </span>
-      <span class="agenda-link-chevron">›</span>
-    </button>
+    <div class="tile-stack">
+      <button id="agenda-link" class="tile" type="button">
+        <span class="tile-icon">🗓</span>
+        <span class="tile-main">
+          <span class="tile-label">My Agenda</span>
+          <span class="tile-sub" id="agenda-link-sub">Today across all calendars</span>
+        </span>
+        <span class="tile-chevron">›</span>
+      </button>
+      <button id="europe-link" class="tile tile-europe" type="button">
+        <span class="tile-icon">🇪🇺</span>
+        <span class="tile-main">
+          <span class="tile-label">European Vacation</span>
+          <span class="tile-sub">Jul 18 → Aug 15 · 28 nights · 18 legs</span>
+        </span>
+        <span class="tile-chevron">›</span>
+      </button>
+    </div>
     <div id="actions-body">
       <div class="state loading">
         <div class="spinner"></div>
