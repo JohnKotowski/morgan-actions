@@ -5,7 +5,9 @@
  * three sections (needs decision / in progress / review). Tap a row to
  * expand and see the latest activity note. */
 
-const API_URL = "https://jeqmvhxbjyzbozcipzlf.supabase.co/functions/v1/mc_actions_mini_app/list";
+const API_BASE = "https://jeqmvhxbjyzbozcipzlf.supabase.co/functions/v1/mc_actions_mini_app";
+const API_LIST = `${API_BASE}/list`;
+const API_TRANSITION = (id) => `${API_BASE}/tasks/${id}/transition`;
 const MC_TASK_URL = (id) => `https://mc.buyerson.co/tasks/${id}`;
 
 const SECTION_ORDER = [
@@ -71,7 +73,67 @@ function renderTask(task) {
     try { tg?.HapticFeedback?.selectionChanged?.(); } catch {}
   });
 
+  const doneBtn = tpl.querySelector(".task-action-done");
+  doneBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    markDone(li, task, doneBtn);
+  });
+
   return tpl;
+}
+
+async function markDone(li, task, btn) {
+  btn.disabled = true;
+  btn.querySelector(".task-action-label").textContent = "Marking…";
+  try { tg?.HapticFeedback?.impactOccurred?.("medium"); } catch {}
+  try {
+    const initData = tg?.initData ?? "";
+    const res = await fetch(API_TRANSITION(task.id), {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-init-data": initData,
+      },
+      body: JSON.stringify({
+        to_status: "done",
+        note: `Marked done by John via mini app`,
+      }),
+    });
+    const body = await res.json().catch(() => ({ ok: false, error: "bad_json" }));
+    if (!res.ok || !body.ok) {
+      throw new Error(body.error || `http_${res.status}`);
+    }
+    // Success → animate out, then remove + update section count + maybe show
+    // the empty-state if this was the last task in the section.
+    li.classList.add("is-removing");
+    try { tg?.HapticFeedback?.notificationOccurred?.("success"); } catch {}
+    setTimeout(() => collapseAfterRemoval(li), 400);
+  } catch (e) {
+    btn.disabled = false;
+    btn.querySelector(".task-action-label").textContent = "Mark done";
+    try { tg?.HapticFeedback?.notificationOccurred?.("error"); } catch {}
+    alert(`Couldn't mark done: ${e.message}`);
+  }
+}
+
+function collapseAfterRemoval(li) {
+  const list = li.parentElement;
+  const section = list?.closest(".section");
+  li.remove();
+  // Decrement section count + show empty state if list is now empty.
+  if (section) {
+    const remaining = list.querySelectorAll(".task:not(.task-empty)").length;
+    const countEl = section.querySelector(".section-count");
+    if (countEl) countEl.textContent = `${remaining}`;
+    if (remaining === 0) {
+      const sectionEmoji = section.querySelector(".section-emoji")?.textContent;
+      const key = sectionEmoji === "🔴" ? "needs_decision"
+        : sectionEmoji === "🟠" ? "in_progress"
+        : sectionEmoji === "🔵" ? "review" : "default";
+      list.innerHTML = "";
+      list.appendChild(renderEmpty(emptyCopy(key)));
+    }
+  }
 }
 
 function renderSection({ key, label, emoji }, tasks) {

@@ -46,7 +46,13 @@
       <div class="task-expand" hidden>
         <p class="task-latest"></p>
         <p class="task-desc"></p>
-        <a class="task-mc-link" target="_blank" rel="noopener">Open in Mission Control →</a>
+        <div class="task-actions">
+          <button type="button" class="task-action task-action-done" data-action="done">
+            <span class="task-action-icon">✓</span>
+            <span class="task-action-label">Mark done</span>
+          </button>
+          <a class="task-mc-link" target="_blank" rel="noopener">Open in Mission Control →</a>
+        </div>
       </div>
     </li>
   </template>

@@ -209,13 +209,60 @@ main {
   white-space: pre-wrap;
 }
 
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.task-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.task-action:active { transform: scale(0.96); }
+
+.task-action[disabled] {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+.task-action-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
 .task-mc-link {
   color: var(--link);
   text-decoration: none;
   font-size: 13px;
+  margin-left: auto;
 }
 
 .task-mc-link:hover { text-decoration: underline; }
+
+/* Optimistic-removal animation: card collapses before the API responds. */
+.task.is-removing {
+  opacity: 0;
+  transform: translateX(20px);
+  transition: opacity 0.3s, transform 0.3s, max-height 0.3s 0.1s, padding 0.3s 0.1s;
+  max-height: 0;
+  padding: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
 
 .task-empty {
   padding: 14px;
