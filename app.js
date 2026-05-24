@@ -165,7 +165,7 @@ async function fetchList() {
   if (!initData) {
     throw new Error("This page must be opened from Telegram.");
   }
-  const res = await fetch(API_URL, {
+  const res = await fetch(API_LIST, {
     method: "GET",
     headers: { "x-init-data": initData },
   });
