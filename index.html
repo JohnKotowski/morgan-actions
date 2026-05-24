@@ -9,14 +9,35 @@
 </head>
 <body>
   <header class="head">
-    <h1>Action Items</h1>
+    <h1 id="page-title">Action Items</h1>
     <button id="refresh" aria-label="Refresh" title="Refresh">↻</button>
   </header>
 
-  <main id="app">
-    <div class="state loading">
-      <div class="spinner"></div>
-      <p>Loading…</p>
+  <!-- View: Action Items (default) -->
+  <main id="view-actions" class="view">
+    <button id="agenda-link" class="agenda-link" type="button">
+      <span class="agenda-link-icon">🗓</span>
+      <span class="agenda-link-main">
+        <span class="agenda-link-label">My Agenda</span>
+        <span class="agenda-link-sub" id="agenda-link-sub">Today across all calendars</span>
+      </span>
+      <span class="agenda-link-chevron">›</span>
+    </button>
+    <div id="actions-body">
+      <div class="state loading">
+        <div class="spinner"></div>
+        <p>Loading…</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- View: Agenda -->
+  <main id="view-agenda" class="view" hidden>
+    <div id="agenda-body">
+      <div class="state loading">
+        <div class="spinner"></div>
+        <p>Loading agenda…</p>
+      </div>
     </div>
   </main>
 
@@ -60,6 +81,22 @@
   <template id="empty-template">
     <li class="task task-empty">
       <span></span>
+    </li>
+  </template>
+
+  <template id="agenda-event-template">
+    <li class="event">
+      <div class="event-time">
+        <span class="event-start"></span>
+        <span class="event-end"></span>
+      </div>
+      <div class="event-body">
+        <div class="event-title"></div>
+        <div class="event-meta">
+          <span class="event-source"></span>
+          <span class="event-location"></span>
+        </div>
+      </div>
     </li>
   </template>
 
