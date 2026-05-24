@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Morgan · Action Items</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="head">
+    <h1>Action Items</h1>
+    <button id="refresh" aria-label="Refresh" title="Refresh">↻</button>
+  </header>
+
+  <main id="app">
+    <div class="state loading">
+      <div class="spinner"></div>
+      <p>Loading…</p>
+    </div>
+  </main>
+
+  <template id="section-template">
+    <section class="section">
+      <h2 class="section-title">
+        <span class="section-emoji"></span>
+        <span class="section-label"></span>
+        <span class="section-count"></span>
+      </h2>
+      <ul class="task-list"></ul>
+    </section>
+  </template>
+
+  <template id="task-template">
+    <li class="task">
+      <button class="task-row" type="button">
+        <span class="task-priority"></span>
+        <span class="task-main">
+          <span class="task-title"></span>
+          <span class="task-meta">
+            <span class="task-relative"></span>
+          </span>
+        </span>
+        <span class="task-chevron">›</span>
+      </button>
+      <div class="task-expand" hidden>
+        <p class="task-latest"></p>
+        <p class="task-desc"></p>
+        <a class="task-mc-link" target="_blank" rel="noopener">Open in Mission Control →</a>
+      </div>
+    </li>
+  </template>
+
+  <template id="empty-template">
+    <li class="task task-empty">
+      <span></span>
+    </li>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
