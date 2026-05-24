@@ -31,9 +31,14 @@ const agendaBodyEl = document.getElementById("agenda-body");
 const agendaLinkEl = document.getElementById("agenda-link");
 const agendaLinkSubEl = document.getElementById("agenda-link-sub");
 const europeLinkEl = document.getElementById("europe-link");
-const EUROPE_TRIP_URL = "https://johnkotowski.github.io/europe-trip-2026/";
+const viewEuropeEl = document.getElementById("view-europe");
+const europeBodyEl = document.getElementById("europe-body");
+
+const EUROPE_TRIP_BASE = "https://johnkotowski.github.io/europe-trip-2026/";
 
 let currentView = "actions";
+// Cache the parsed trip data so back-and-forth navigation feels instant.
+let europeCache = null;
 
 /* ───────────────────────────── utilities ───────────────────────────── */
 
@@ -83,19 +88,30 @@ async function jsonFetch(url, opts = {}) {
 
 /* ──────────────────────────── view routing ─────────────────────────── */
 
+// Single handler ref so we don't stack listeners across showView calls.
+const backToActions = () => showView("actions");
+
 function showView(view) {
   currentView = view;
+  viewActionsEl.hidden = view !== "actions";
+  viewAgendaEl.hidden = view !== "agenda";
+  viewEuropeEl.hidden = view !== "europe";
+
   if (view === "actions") {
-    viewActionsEl.hidden = false;
-    viewAgendaEl.hidden = true;
     titleEl.textContent = "Action Items";
     if (tg?.BackButton) tg.BackButton.hide();
   } else if (view === "agenda") {
-    viewActionsEl.hidden = true;
-    viewAgendaEl.hidden = false;
     titleEl.textContent = "My Agenda";
     if (tg?.BackButton) {
-      tg.BackButton.onClick(() => showView("actions"));
+      tg.BackButton.offClick(backToActions);
+      tg.BackButton.onClick(backToActions);
+      tg.BackButton.show();
+    }
+  } else if (view === "europe") {
+    titleEl.textContent = "European Vacation";
+    if (tg?.BackButton) {
+      tg.BackButton.offClick(backToActions);
+      tg.BackButton.onClick(backToActions);
       tg.BackButton.show();
     }
   }
@@ -347,6 +363,153 @@ async function loadAgenda() {
   }
 }
 
+/* ──────────────────────── European vacation view ───────────────────── */
+
+const STATUS_CLASSES = ["locked", "decided", "open", "free"];
+
+function parseTripIndex(html) {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  // Hero stats: each .stat has .n + .l
+  const stats = [...doc.querySelectorAll(".hero .stat")].map((s) => ({
+    n: s.querySelector(".n")?.textContent?.trim() ?? "",
+    l: s.querySelector(".l")?.textContent?.trim() ?? "",
+  }));
+  // Walk the container's children to keep section -> legs association.
+  const container = doc.querySelector(".container");
+  const sections = [];
+  let current = null;
+  if (container) {
+    for (const node of container.children) {
+      if (node.classList.contains("section-h")) {
+        current = { name: node.textContent.trim(), legs: [] };
+        sections.push(current);
+      } else if (node.classList.contains("leg-list") && current) {
+        for (const card of node.querySelectorAll(".leg-card")) {
+          const status = STATUS_CLASSES.find((c) => card.classList.contains(c)) || null;
+          // .row1 contains: optional icon span, free-text date/dates, optional .nights span, .badge span
+          const row1 = card.querySelector(".row1");
+          const iconEl = row1?.querySelector(".icon");
+          const badgeEl = row1?.querySelector(".badge");
+          // Extract the "when" by removing icon + badge nodes then reading text.
+          let whenText = "";
+          if (row1) {
+            const clone = row1.cloneNode(true);
+            clone.querySelector(".icon")?.remove();
+            clone.querySelector(".badge")?.remove();
+            whenText = clone.textContent.replace(/\s+/g, " ").trim();
+          }
+          current.legs.push({
+            href: card.getAttribute("href") || "",
+            status,
+            icon: iconEl?.textContent?.trim() ?? "",
+            when: whenText,
+            badge: badgeEl?.textContent?.trim() ?? "",
+            title: card.querySelector(".title")?.textContent?.trim() ?? "",
+            meta: card.querySelector(".meta")?.textContent?.trim() ?? "",
+          });
+        }
+      }
+    }
+  }
+  return { stats, sections };
+}
+
+function renderTripHero(stats) {
+  const hero = document.createElement("div");
+  hero.className = "trip-hero";
+  const h = document.createElement("h2");
+  h.className = "trip-hero-title";
+  h.textContent = "Family Europe Trip";
+  hero.appendChild(h);
+  const sub = document.createElement("p");
+  sub.className = "trip-hero-sub";
+  sub.textContent = "Jul 18 → Aug 15 · 4 adults + 1 child";
+  hero.appendChild(sub);
+  if (stats.length) {
+    const grid = document.createElement("div");
+    grid.className = "trip-stats";
+    for (const s of stats) {
+      const cell = document.createElement("div");
+      cell.className = "trip-stat";
+      const n = document.createElement("div");
+      n.className = "trip-stat-n";
+      n.textContent = s.n;
+      const l = document.createElement("div");
+      l.className = "trip-stat-l";
+      l.textContent = s.l;
+      cell.append(n, l);
+      grid.appendChild(cell);
+    }
+    hero.appendChild(grid);
+  }
+  return hero;
+}
+
+function renderTripLeg(leg) {
+  const tpl = document.getElementById("europe-leg-template").content.cloneNode(true);
+  const li = tpl.querySelector(".trip-leg");
+  if (leg.status) li.dataset.status = leg.status;
+  tpl.querySelector(".trip-leg-icon").textContent = leg.icon || "•";
+  tpl.querySelector(".trip-leg-when").textContent = leg.when;
+  const badge = tpl.querySelector(".trip-leg-badge");
+  if (leg.badge) badge.textContent = leg.badge;
+  else badge.remove();
+  tpl.querySelector(".trip-leg-title").textContent = leg.title;
+  const meta = tpl.querySelector(".trip-leg-meta");
+  if (leg.meta) meta.textContent = leg.meta;
+  else meta.remove();
+
+  const detailUrl = leg.href ? new URL(leg.href, EUROPE_TRIP_BASE).toString() : null;
+  const row = tpl.querySelector(".trip-leg-row");
+  row.addEventListener("click", () => {
+    try { tg?.HapticFeedback?.selectionChanged?.(); } catch {}
+    if (!detailUrl) return;
+    if (tg?.openLink) tg.openLink(detailUrl);
+    else window.open(detailUrl, "_blank", "noopener");
+  });
+  return tpl;
+}
+
+function renderTripSection(section) {
+  const wrap = document.createElement("section");
+  const h = document.createElement("h3");
+  h.className = "trip-section-h";
+  h.textContent = section.name;
+  wrap.appendChild(h);
+  const list = document.createElement("ul");
+  list.className = "trip-leg-list";
+  for (const leg of section.legs) list.appendChild(renderTripLeg(leg));
+  wrap.appendChild(list);
+  return wrap;
+}
+
+async function loadEurope() {
+  europeBodyEl.innerHTML = `<div class="state loading"><div class="spinner"></div><p>Loading trip…</p></div>`;
+  refreshBtn.disabled = true;
+  try {
+    const html = await fetch(`${EUROPE_TRIP_BASE}?ts=${Date.now()}`).then((r) => {
+      if (!r.ok) throw new Error(`http_${r.status}`);
+      return r.text();
+    });
+    const data = parseTripIndex(html);
+    europeCache = data;
+    const frag = document.createDocumentFragment();
+    frag.appendChild(renderTripHero(data.stats));
+    for (const section of data.sections) frag.appendChild(renderTripSection(section));
+    const footer = document.createElement("div");
+    footer.className = "footer";
+    footer.textContent = `Pulled from europe-trip-2026 · ${new Date().toLocaleTimeString()}`;
+    frag.appendChild(footer);
+    europeBodyEl.innerHTML = "";
+    europeBodyEl.appendChild(frag);
+  } catch (e) {
+    europeBodyEl.innerHTML = `<div class="state error"><p><strong>Couldn't load trip.</strong></p><p>${e.message}</p><p style="margin-top:18px;"><button id="retry-europe" style="padding:10px 18px;border-radius:8px;border:0;background:var(--accent);color:var(--accent-text);font:inherit;cursor:pointer;">Retry</button></p></div>`;
+    document.getElementById("retry-europe")?.addEventListener("click", loadEurope);
+  } finally {
+    refreshBtn.disabled = false;
+  }
+}
+
 /* ────────────────────────────── boot ───────────────────────────────── */
 
 if (tg) {
@@ -362,18 +525,23 @@ agendaLinkEl.addEventListener("click", () => {
 
 europeLinkEl.addEventListener("click", () => {
   try { tg?.HapticFeedback?.impactOccurred?.("light"); } catch {}
-  // openLink uses Telegram's in-app browser when available, with a
-  // "Back to bot" affordance so John can return to this view.
-  if (tg?.openLink) {
-    tg.openLink(EUROPE_TRIP_URL, { try_instant_view: false });
+  showView("europe");
+  // Use cache for the snappiest tap-back-tap UX; refresh button re-pulls.
+  if (europeCache) {
+    const frag = document.createDocumentFragment();
+    frag.appendChild(renderTripHero(europeCache.stats));
+    for (const s of europeCache.sections) frag.appendChild(renderTripSection(s));
+    europeBodyEl.innerHTML = "";
+    europeBodyEl.appendChild(frag);
   } else {
-    window.open(EUROPE_TRIP_URL, "_blank", "noopener");
+    loadEurope();
   }
 });
 
 refreshBtn.addEventListener("click", () => {
   try { tg?.HapticFeedback?.impactOccurred?.("light"); } catch {}
   if (currentView === "agenda") loadAgenda();
+  else if (currentView === "europe") loadEurope();
   else loadActions();
 });
 

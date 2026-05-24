@@ -51,6 +51,16 @@
     </div>
   </main>
 
+  <!-- View: European Vacation (trip dashboard, pulled live from europe-trip-2026) -->
+  <main id="view-europe" class="view" hidden>
+    <div id="europe-body">
+      <div class="state loading">
+        <div class="spinner"></div>
+        <p>Loading trip…</p>
+      </div>
+    </div>
+  </main>
+
   <template id="section-template">
     <section class="section">
       <h2 class="section-title">
@@ -107,6 +117,24 @@
           <span class="event-location"></span>
         </div>
       </div>
+    </li>
+  </template>
+
+  <template id="europe-leg-template">
+    <li class="trip-leg">
+      <button class="trip-leg-row" type="button">
+        <span class="trip-leg-stripe"></span>
+        <span class="trip-leg-main">
+          <span class="trip-leg-row1">
+            <span class="trip-leg-icon"></span>
+            <span class="trip-leg-when"></span>
+            <span class="trip-leg-badge"></span>
+          </span>
+          <span class="trip-leg-title"></span>
+          <span class="trip-leg-meta"></span>
+        </span>
+        <span class="trip-leg-chevron">›</span>
+      </button>
     </li>
   </template>
 
