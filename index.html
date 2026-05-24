@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Morgan · Action Items</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- europe-trip styles loaded first so the leg-detail content (.leg-header,
+       .section, .callout, .day, .poi, .option, .btn, etc.) renders correctly
+       when injected. Our own style.css loads second to win cascade conflicts
+       on shared classes/vars. -->
+  <link rel="stylesheet" href="https://johnkotowski.github.io/europe-trip-2026/app.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -57,6 +62,16 @@
       <div class="state loading">
         <div class="spinner"></div>
         <p>Loading trip…</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- View: Leg detail (any of legs 01..18, pulled live + injected) -->
+  <main id="view-leg-detail" class="view" hidden>
+    <div id="leg-detail-body">
+      <div class="state loading">
+        <div class="spinner"></div>
+        <p>Loading leg…</p>
       </div>
     </div>
   </main>
